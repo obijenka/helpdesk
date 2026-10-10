@@ -4,6 +4,10 @@ require('dotenv').config();
 
 const pool = require('./config/db');
 const authRoutes = require('./routes/auth');
+const ticketRoutes = require('./routes/tickets');
+const profileRoutes = require('./routes/profile');
+const userRoutes = require('./routes/users');
+const reportRoutes = require('./routes/reports');
 
 const app = express();
 
@@ -25,6 +29,10 @@ app.get('/api/health', async (req, res) => {
 
 // Маршруты
 app.use('/api/auth', authRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/reports', reportRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
