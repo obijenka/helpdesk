@@ -1,4 +1,9 @@
 const pool = require('../config/db');
+const {
+  createNotification,
+  createNotificationForMany,
+  getAdminIds,
+} = require('../utils/notifications');
 
 exports.getTickets = async (req, res) => {
   const { id: userId, role } = req.user;
@@ -25,7 +30,6 @@ exports.getTickets = async (req, res) => {
 
     const params = [];
 
-    // Принудительные фильтры по роли
     if (role === 'user') {
       sql += ' AND t.author_id = ?';
       params.push(userId);
@@ -34,7 +38,6 @@ exports.getTickets = async (req, res) => {
       params.push(userId);
     }
 
-    // Фильтры из query-параметров
     if (status) {
       sql += ' AND t.status_id = ?';
       params.push(status);
@@ -98,7 +101,6 @@ exports.getMeta = async (req, res) => {
   }
 };
 
-// Получить одну заявку
 exports.getTicketById = async (req, res) => {
   const { id } = req.params;
   const { id: userId, role } = req.user;
@@ -131,7 +133,6 @@ exports.getTicketById = async (req, res) => {
 
     const r = rows[0];
 
-    // Проверка прав: user видит только свои, executor — назначенные, admin — все
     if (role === 'user' && r.author_id !== userId) {
       return res.status(403).json({ message: 'Нет доступа к этой заявке' });
     }
@@ -165,7 +166,6 @@ exports.getTicketById = async (req, res) => {
   }
 };
 
-// Комментарии заявки
 exports.getComments = async (req, res) => {
   const { id } = req.params;
 
@@ -202,7 +202,6 @@ exports.getComments = async (req, res) => {
   }
 };
 
-// Добавить комментарий
 exports.addComment = async (req, res) => {
   const { id } = req.params;
   const { text } = req.body;
@@ -218,7 +217,6 @@ exports.addComment = async (req, res) => {
       [id, userId, text.trim()]
     );
 
-    // Возвращаем созданный комментарий
     const [rows] = await pool.query(
       `SELECT 
         c.comment_id, c.text, c.created_at,
@@ -232,6 +230,25 @@ exports.addComment = async (req, res) => {
     );
 
     const r = rows[0];
+
+    // === УВЕДОМЛЕНИЯ ===
+    const [ticketInfo] = await pool.query(
+      'SELECT author_id, assignee_id FROM tickets WHERE ticket_id = ?',
+      [id]
+    );
+
+    if (ticketInfo.length > 0) {
+      const { author_id, assignee_id } = ticketInfo[0];
+      const message = `Новый комментарий к заявке #${id}`;
+
+      if (author_id && author_id !== userId) {
+        await createNotification(author_id, id, message);
+      }
+      if (assignee_id && assignee_id !== userId && assignee_id !== author_id) {
+        await createNotification(assignee_id, id, message);
+      }
+    }
+
     res.status(201).json({
       id: r.comment_id,
       text: r.text,
@@ -244,7 +261,6 @@ exports.addComment = async (req, res) => {
   }
 };
 
-// Сменить статус
 exports.updateStatus = async (req, res) => {
   const { id } = req.params;
   const { statusId } = req.body;
@@ -255,9 +271,8 @@ exports.updateStatus = async (req, res) => {
   }
 
   try {
-    // Проверяем, что заявка доступна
     const [tickets] = await pool.query(
-      'SELECT assignee_id, status_id FROM tickets WHERE ticket_id = ?',
+      'SELECT assignee_id, status_id, author_id FROM tickets WHERE ticket_id = ?',
       [id]
     );
 
@@ -270,14 +285,15 @@ exports.updateStatus = async (req, res) => {
     }
 
     const oldStatusId = tickets[0].status_id;
+    const { author_id, assignee_id } = tickets[0];
 
-    // Обновляем
     let sql = 'UPDATE tickets SET status_id = ?';
     const params = [statusId];
 
-    // Если статус "Закрыта" — проставляем closed_at
     const [status] = await pool.query('SELECT name FROM statuses WHERE status_id = ?', [statusId]);
-    if (status[0]?.name === 'Закрыта') {
+    const newStatusName = status[0]?.name;
+
+    if (newStatusName === 'Закрыта') {
       sql += ', closed_at = NOW()';
     }
 
@@ -286,12 +302,26 @@ exports.updateStatus = async (req, res) => {
 
     await pool.query(sql, params);
 
-    // Записываем в историю
     await pool.query(
       `INSERT INTO ticket_history (ticket_id, user_id, field_name, old_value, new_value)
        VALUES (?, ?, 'status', ?, ?)`,
       [id, userId, String(oldStatusId), String(statusId)]
     );
+
+    // === УВЕДОМЛЕНИЯ ===
+    const message = `Статус заявки #${id} изменён на «${newStatusName}»`;
+
+    if (author_id && author_id !== userId) {
+      await createNotification(author_id, id, message);
+    }
+    if (assignee_id && assignee_id !== userId && assignee_id !== author_id) {
+      await createNotification(assignee_id, id, message);
+    }
+
+    // Если закрыта — отдельное уведомление автору
+    if (newStatusName === 'Закрыта' && author_id && author_id !== userId) {
+      await createNotification(author_id, id, `Ваша заявка #${id} закрыта`);
+    }
 
     res.json({ message: 'Статус обновлён' });
   } catch (err) {
@@ -300,7 +330,6 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
-// Назначить исполнителя (только админ)
 exports.assignExecutor = async (req, res) => {
   const { id } = req.params;
   const { assigneeId } = req.body;
@@ -325,6 +354,14 @@ exports.assignExecutor = async (req, res) => {
       [id, userId, String(oldAssignee || ''), String(assigneeId || '')]
     );
 
+    // === УВЕДОМЛЕНИЯ ===
+    if (assigneeId && assigneeId !== oldAssignee) {
+      await createNotification(assigneeId, id, `Вам назначена заявка #${id}`);
+    }
+    if (oldAssignee && oldAssignee !== assigneeId) {
+      await createNotification(oldAssignee, id, `С вас снята заявка #${id}`);
+    }
+
     res.json({ message: 'Исполнитель назначен' });
   } catch (err) {
     console.error(err);
@@ -332,7 +369,6 @@ exports.assignExecutor = async (req, res) => {
   }
 };
 
-// Список исполнителей (для админа)
 exports.getExecutors = async (req, res) => {
   const { role } = req.user;
 
@@ -364,18 +400,15 @@ exports.getExecutors = async (req, res) => {
   }
 };
 
-// Создать заявку
 exports.createTicket = async (req, res) => {
   const { subject, description, categoryId, priorityId } = req.body;
   const userId = req.user.id;
   const { role } = req.user;
 
-  // Только пользователи могут создавать заявки
   if (role !== 'user') {
     return res.status(403).json({ message: 'Только сотрудники могут создавать заявки' });
   }
 
-  // Валидация
   if (!subject?.trim() || !description?.trim()) {
     return res.status(400).json({ message: 'Заполните тему и описание' });
   }
@@ -387,7 +420,6 @@ exports.createTicket = async (req, res) => {
   }
 
   try {
-    // Статус "Новая" — ID 1
     const [statusRows] = await pool.query(
       "SELECT status_id FROM statuses WHERE name = 'Новая' LIMIT 1"
     );
@@ -400,11 +432,18 @@ exports.createTicket = async (req, res) => {
       [userId, statusId, priorityId, categoryId, subject.trim(), description.trim()]
     );
 
-    // Запись в историю
     await pool.query(
       `INSERT INTO ticket_history (ticket_id, user_id, field_name, new_value)
        VALUES (?, ?, 'status', 'Новая')`,
       [result.insertId, userId]
+    );
+
+    // === УВЕДОМЛЕНИЯ для всех админов ===
+    const adminIds = await getAdminIds();
+    await createNotificationForMany(
+      adminIds,
+      result.insertId,
+      `Новая заявка #${result.insertId}: «${subject.trim()}»`
     );
 
     res.status(201).json({
@@ -428,7 +467,7 @@ exports.updatePriority = async (req, res) => {
 
   try {
     const [tickets] = await pool.query(
-      'SELECT assignee_id, priority_id FROM tickets WHERE ticket_id = ?',
+      'SELECT assignee_id, priority_id, author_id FROM tickets WHERE ticket_id = ?',
       [id]
     );
 
@@ -440,6 +479,7 @@ exports.updatePriority = async (req, res) => {
     }
 
     const oldId = tickets[0].priority_id;
+    const { author_id, assignee_id } = tickets[0];
 
     await pool.query(
       'UPDATE tickets SET priority_id = ? WHERE ticket_id = ?',
@@ -452,7 +492,162 @@ exports.updatePriority = async (req, res) => {
       [id, userId, String(oldId), String(priorityId)]
     );
 
+    // === УВЕДОМЛЕНИЯ ===
+    const [priorityRows] = await pool.query(
+      'SELECT name FROM priorities WHERE priority_id = ?',
+      [priorityId]
+    );
+    const priorityName = priorityRows[0]?.name;
+
+    const message = `Приоритет заявки #${id} изменён на «${priorityName}»`;
+
+    if (author_id && author_id !== userId) {
+      await createNotification(author_id, id, message);
+    }
+    if (assignee_id && assignee_id !== userId && assignee_id !== author_id) {
+      await createNotification(assignee_id, id, message);
+    }
+
     res.json({ message: 'Приоритет обновлён' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+};
+
+// История изменений заявки
+exports.getHistory = async (req, res) => {
+  const { id } = req.params;
+  const { id: userId, role } = req.user;
+
+  try {
+    // Проверка доступа
+    const [tickets] = await pool.query(
+      'SELECT author_id, assignee_id FROM tickets WHERE ticket_id = ?',
+      [id]
+    );
+
+    if (tickets.length === 0) {
+      return res.status(404).json({ message: 'Заявка не найдена' });
+    }
+
+    const { author_id, assignee_id } = tickets[0];
+
+    if (role === 'user' && author_id !== userId) {
+      return res.status(403).json({ message: 'Нет доступа' });
+    }
+    if (role === 'executor' && assignee_id !== userId) {
+      return res.status(403).json({ message: 'Нет доступа' });
+    }
+
+    // Получаем историю с расшифровкой значений
+    const [rows] = await pool.query(
+      `SELECT 
+        h.history_id, h.field_name, h.old_value, h.new_value, h.changed_at,
+        u.user_id, u.full_name AS user_name,
+        r.name AS user_role
+      FROM ticket_history h
+      JOIN users u ON h.user_id = u.user_id
+      JOIN roles r ON u.role_id = r.role_id
+      WHERE h.ticket_id = ?
+      ORDER BY h.changed_at ASC`,
+      [id]
+    );
+
+    // Расшифровка значений (ID → название)
+    const items = [];
+
+    for (const r of rows) {
+      let description = '';
+      let icon = 'circle'; // для фронта
+      let oldLabel = r.old_value;
+      let newLabel = r.new_value;
+
+      if (r.field_name === 'status') {
+        // Преобразуем ID статуса в название
+        const ids = [r.old_value, r.new_value].filter(Boolean);
+        if (ids.length > 0) {
+          const [statuses] = await pool.query(
+            `SELECT status_id, name FROM statuses WHERE status_id IN (?)`,
+            [ids]
+          );
+          const map = Object.fromEntries(
+            statuses.map((s) => [String(s.status_id), s.name])
+          );
+          oldLabel = r.old_value ? map[r.old_value] : null;
+          newLabel = r.new_value ? map[r.new_value] : null;
+        }
+
+        icon = 'status';
+        if (newLabel === 'Закрыта') icon = 'closed';
+        else if (newLabel === 'Решена') icon = 'resolved';
+        else if (newLabel === 'В работе') icon = 'progress';
+
+        description = oldLabel
+          ? `Статус: ${oldLabel} → ${newLabel}`
+          : `Статус: ${newLabel}`;
+      } else if (r.field_name === 'priority') {
+        const ids = [r.old_value, r.new_value].filter(Boolean);
+        if (ids.length > 0) {
+          const [priorities] = await pool.query(
+            `SELECT priority_id, name FROM priorities WHERE priority_id IN (?)`,
+            [ids]
+          );
+          const map = Object.fromEntries(
+            priorities.map((p) => [String(p.priority_id), p.name])
+          );
+          oldLabel = r.old_value ? map[r.old_value] : null;
+          newLabel = r.new_value ? map[r.new_value] : null;
+        }
+
+        icon = 'priority';
+        description = oldLabel
+          ? `Приоритет: ${oldLabel} → ${newLabel}`
+          : `Приоритет: ${newLabel}`;
+      } else if (r.field_name === 'assignee') {
+        const ids = [r.old_value, r.new_value].filter(Boolean).filter((v) => v !== '');
+        if (ids.length > 0) {
+          const [users] = await pool.query(
+            `SELECT user_id, full_name FROM users WHERE user_id IN (?)`,
+            [ids]
+          );
+          const map = Object.fromEntries(
+            users.map((u) => [String(u.user_id), u.full_name])
+          );
+          oldLabel = r.old_value ? map[r.old_value] : null;
+          newLabel = r.new_value ? map[r.new_value] : null;
+        }
+
+        icon = 'assignee';
+        if (oldLabel && newLabel) {
+          description = `Исполнитель: ${oldLabel} → ${newLabel}`;
+        } else if (newLabel) {
+          description = `Назначен исполнитель: ${newLabel}`;
+        } else if (oldLabel) {
+          description = `Снят исполнитель: ${oldLabel}`;
+        }
+      } else {
+        // На случай других полей
+        description = `${r.field_name}: ${r.old_value || '—'} → ${r.new_value || '—'}`;
+      }
+
+      items.push({
+        id: r.history_id,
+        field: r.field_name,
+        icon,
+        description,
+        oldValue: oldLabel,
+        newValue: newLabel,
+        changedAt: r.changed_at,
+        user: {
+          id: r.user_id,
+          name: r.user_name,
+          role: r.user_role,
+        },
+      });
+    }
+
+    res.json(items);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });

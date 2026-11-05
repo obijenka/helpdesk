@@ -13,4 +13,5 @@ export const ticketsApi = {
   create: (data) => api.post('/tickets', data),
   updatePriority: (id, priorityId) =>
     api.patch(`/tickets/${id}/priority`, { priorityId }),
+  history: (id) => api.get(`/tickets/${id}/history`),
 };

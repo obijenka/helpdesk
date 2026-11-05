@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
-import { usersApi } from '../../api/users';
-import Modal from '../ui/Modal';
-import Avatar from '../ui/Avatar';
-import Button from '../ui/Button';
-import ExecutorLoadBadge from '../ui/ExecutorLoadBadge';
+import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
+import { usersApi } from "../../api/users";
+import Modal from "../ui/Modal";
+import Avatar from "../ui/Avatar";
+import Button from "../ui/Button";
+import ExecutorLoadBadge from "../ui/ExecutorLoadBadge";
 
 const MAX_LOAD = 7; // условная норма активных заявок
 
@@ -16,7 +16,7 @@ export default function AssignExecutorModal({
   onAssigned,
 }) {
   const [executors, setExecutors] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [assigningId, setAssigningId] = useState(null);
 
@@ -41,7 +41,7 @@ export default function AssignExecutorModal({
   };
 
   const handleUnassign = async () => {
-    setAssigningId('none');
+    setAssigningId("none");
     try {
       await onAssigned(null);
       onClose();
@@ -50,9 +50,10 @@ export default function AssignExecutorModal({
     }
   };
 
-  const filtered = executors.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()) ||
-    e.email.toLowerCase().includes(search.toLowerCase())
+  const filtered = executors.filter(
+    (e) =>
+      e.name.toLowerCase().includes(search.toLowerCase()) ||
+      e.email.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -79,7 +80,7 @@ export default function AssignExecutorModal({
           placeholder="Поиск по имени или email..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+          className="w-full pl-10 pr-3 py-2 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
         />
       </div>
 
@@ -108,19 +109,19 @@ export default function AssignExecutorModal({
             const percent = Math.min((e.activeCount / MAX_LOAD) * 100, 100);
 
             const barColor =
-              e.loadLevel === 'high'
-                ? 'bg-red-500'
-                : e.loadLevel === 'medium'
-                ? 'bg-amber-500'
-                : 'bg-emerald-500';
+              e.loadLevel === "high"
+                ? "bg-red-500"
+                : e.loadLevel === "medium"
+                  ? "bg-amber-500"
+                  : "bg-emerald-500";
 
             return (
               <div
                 key={e.id}
                 className={`border rounded-xl p-4 transition ${
                   isCurrent
-                    ? 'border-gray-900 bg-gray-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? "border-gray-900 bg-gray-50"
+                    : "border-gray-200 hover:border-gray-300"
                 }`}
               >
                 <div className="flex items-start gap-3">
@@ -138,13 +139,15 @@ export default function AssignExecutorModal({
                     </div>
 
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {e.department || '—'} · {e.position || 'Исполнитель'}
+                      {e.department || "—"} · {e.position || "Исполнитель"}
                     </p>
 
                     {/* Прогресс-бар загрузки */}
                     <div className="mt-3">
                       <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                        <span>Загрузка: {e.activeCount} из {MAX_LOAD}</span>
+                        <span>
+                          Загрузка: {e.activeCount} из {MAX_LOAD}
+                        </span>
                         <span>Активных: {e.activeCount}</span>
                       </div>
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -177,7 +180,7 @@ export default function AssignExecutorModal({
                         onClick={() => handleAssign(e.id)}
                         disabled={assigningId !== null}
                       >
-                        {assigningId === e.id ? '...' : 'Назначить'}
+                        {assigningId === e.id ? "..." : "Назначить"}
                       </Button>
                     )}
                   </div>

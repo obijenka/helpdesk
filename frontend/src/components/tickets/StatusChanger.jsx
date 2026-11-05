@@ -30,7 +30,7 @@ export default function StatusChanger({ ticketId, currentStatusId, onChanged }) 
       value={currentStatusId}
       onChange={handleChange}
       disabled={loading}
-      className="text-sm bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50"
+      className="text-sm text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50 cursor-pointer transition"
     >
       {statuses.map((s) => (
         <option key={s.id} value={s.id}>

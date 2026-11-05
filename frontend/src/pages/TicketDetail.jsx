@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, UserPlus } from "lucide-react";
+import { ArrowLeft, UserPlus, History } from "lucide-react";
 import { format } from "date-fns";
 import { ru } from "date-fns/locale";
 import { ticketsApi } from "../api/tickets";
@@ -13,6 +13,8 @@ import CommentForm from "../components/tickets/CommentForm";
 import StatusChanger from "../components/tickets/StatusChanger";
 import PriorityChanger from "../components/tickets/PriorityChanger";
 import AssignExecutorModal from "../components/tickets/AssignExecutorModal";
+import TicketHistoryModal from "../components/tickets/TicketHistoryModal";
+import AttachmentsList from "../components/tickets/AttachmentsList";
 
 export default function TicketDetail() {
   const { id } = useParams();
@@ -25,6 +27,8 @@ export default function TicketDetail() {
   const [error, setError] = useState("");
 
   const [assignModalOpen, setAssignModalOpen] = useState(false);
+
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([ticketsApi.get(id), ticketsApi.comments(id)])
@@ -131,6 +135,9 @@ export default function TicketDetail() {
               <CommentForm ticketId={ticket.id} onAdded={handleCommentAdded} />
             </div>
           </div>
+
+          {/* Вложения */}
+          <AttachmentsList ticketId={ticket.id} />
         </div>
 
         {/* Правая часть — мета */}
@@ -172,6 +179,14 @@ export default function TicketDetail() {
                 </div>
               )}
             </div>
+
+            <button
+              onClick={() => setHistoryOpen(true)}
+              className="mt-5 w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
+            >
+              <History className="w-4 h-4" />
+              История изменений
+            </button>
           </div>
 
           {/* Исполнитель */}
@@ -197,7 +212,9 @@ export default function TicketDetail() {
                 className="mt-3 w-full flex items-center justify-center gap-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition"
               >
                 <UserPlus className="w-4 h-4" />
-                {ticket.assignee ? "Изменить исполнителя" : "Назначить исполнителя"}
+                {ticket.assignee
+                  ? "Изменить исполнителя"
+                  : "Назначить исполнителя"}
               </button>
             )}
           </div>
@@ -244,6 +261,13 @@ export default function TicketDetail() {
           onAssigned={handleAssigned}
         />
       )}
+
+      {/* Модалка истории */}
+      <TicketHistoryModal
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        ticketId={ticket.id}
+      />
     </div>
   );
 }

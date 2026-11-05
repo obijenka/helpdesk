@@ -29,8 +29,8 @@ export default function PriorityChanger({ ticketId, currentPriorityId, onChanged
       value={currentPriorityId}
       onChange={handleChange}
       disabled={loading}
-      className="text-sm bg-white border border-gray-300 rounded-lg px-3 py-2
-                 focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50 w-full"
+      className="text-sm text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2
+                 focus:outline-none focus:ring-2 focus:ring-gray-900 disabled:opacity-50 w-full cursor-pointer transition"
     >
       {priorities.map((p) => (
         <option key={p.id} value={p.id}>{p.name}</option>

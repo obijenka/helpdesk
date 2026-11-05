@@ -90,7 +90,7 @@ export default function Executors() {
         />
       </div>
 
-      {/* Поиск + сортировка */}
+            {/* Поиск + сортировка */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <div className="relative md:col-span-2">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -99,7 +99,7 @@ export default function Executors() {
             placeholder="Поиск по имени или email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            className="w-full pl-10 pr-3 py-2 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
           />
         </div>
 
@@ -108,7 +108,7 @@ export default function Executors() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 appearance-none"
+            className="w-full pl-10 pr-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 appearance-none"
           >
             <option value="load">По загрузке</option>
             <option value="name">По имени (А–Я)</option>

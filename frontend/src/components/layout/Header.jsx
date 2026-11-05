@@ -3,6 +3,7 @@ import { LifeBuoy, Bell } from 'lucide-react';
 import { useState } from 'react';
 import Badge from '../ui/Badge';
 import UserMenu from './UserMenu';
+import NotificationBell from './NotificationBell';
 
 export default function Header() {
   // Пока заглушка — позже загрузим из API
@@ -18,13 +19,7 @@ export default function Header() {
       </Link>
 
       <div className="flex items-center gap-2">
-        <button
-          className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-100 transition"
-          title="Уведомления"
-        >
-          <Bell className="w-[18px] h-[18px] text-gray-600" />
-          <Badge count={unreadCount} />
-        </button>
+        <NotificationBell />
 
         <UserMenu />
       </div>

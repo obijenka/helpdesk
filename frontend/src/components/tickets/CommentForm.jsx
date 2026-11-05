@@ -23,19 +23,20 @@ export default function CommentForm({ ticketId, onAdded }) {
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="flex gap-2 items-start">
+    return (
+    // Замени items-start на items-center
+    <form onSubmit={handleSubmit} className="flex gap-3 items-center"> 
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder="Написать комментарий..."
         rows={2}
-        className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+        className="flex-1 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition"
       />
       <button
         type="submit"
         disabled={sending || !text.trim()}
-        className="flex items-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="flex items-center justify-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
       >
         <Send className="w-4 h-4" />
         {sending ? '...' : 'Отправить'}

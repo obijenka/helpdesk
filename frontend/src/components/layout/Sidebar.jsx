@@ -1,5 +1,13 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Inbox, PlusCircle, BarChart3, Users, UserCheck, LogOut } from 'lucide-react';
+import {
+  Inbox,
+  PlusCircle,
+  BarChart3,
+  Users,
+  UserCheck,
+  LogOut,
+  Bell,
+} from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Sidebar() {
@@ -41,6 +49,12 @@ export default function Sidebar() {
       label: "Пользователи",
       icon: Users,
       roles: ["admin"],
+    },
+    {
+      to: "/notifications",
+      label: "Уведомления",
+      icon: Bell,
+      roles: ["user", "executor", "admin"],
     },
   ];
 

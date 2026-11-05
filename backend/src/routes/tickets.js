@@ -17,6 +17,6 @@ router.post('/:id/comments', ticketController.addComment);
 router.patch('/:id/status', ticketController.updateStatus);
 router.patch('/:id/priority', ticketController.updatePriority);
 router.patch('/:id/assignee', ticketController.assignExecutor);
-
+router.get('/:id/history', ticketController.getHistory);
 
 module.exports = router;

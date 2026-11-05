@@ -8,6 +8,7 @@ import Users from './pages/Users';
 import Executors from './pages/Executors';
 import Reports from './pages/Reports';
 import ProtectedLayout from './components/layout/ProtectedLayout';
+import Notifications from './pages/Notifications';
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/users" element={<Users />} /> 
         <Route path="/executors" element={<Executors />} />
         <Route path="/reports" element={<Reports />} />
+        <Route path="/notifications" element={<Notifications />} />
       </Route>
     </Routes>
   );

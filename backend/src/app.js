@@ -8,6 +8,8 @@ const ticketRoutes = require('./routes/tickets');
 const profileRoutes = require('./routes/profile');
 const userRoutes = require('./routes/users');
 const reportRoutes = require('./routes/reports');
+const notificationRoutes = require('./routes/notifications');
+const attachmentRoutes = require('./routes/attachments');
 
 const app = express();
 
@@ -33,6 +35,8 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/attachments', attachmentRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

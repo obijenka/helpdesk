@@ -98,7 +98,7 @@ export default function Users() {
         </Button>
       </div>
 
-      {/* Фильтры */}
+            {/* Фильтры */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -107,14 +107,14 @@ export default function Users() {
             placeholder="Поиск по ФИО или email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            className="w-full pl-10 pr-3 py-2 text-sm text-gray-900 placeholder-gray-400 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
           />
         </div>
 
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="text-sm bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="text-sm text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
           <option value="">Все роли</option>
           {meta.roles.map((r) => (
@@ -125,7 +125,7 @@ export default function Users() {
         <select
           value={deptFilter}
           onChange={(e) => setDeptFilter(e.target.value)}
-          className="text-sm bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="text-sm text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
           <option value="">Все отделы</option>
           {meta.departments.map((d) => (
@@ -178,7 +178,7 @@ export default function Users() {
           placeholder="Новый пароль (минимум 6 символов)"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 mb-4"
+          className="w-full px-3 py-2 text-sm text-gray-900 placeholder-gray-400 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 mb-4"
         />
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={() => setResetTarget(null)}>

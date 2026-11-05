@@ -96,7 +96,7 @@ export default function Tickets() {
         </div>
       )}
 
-      {/* Фильтры */}
+            {/* Фильтры */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
         {/* Поиск */}
         <div className="relative md:col-span-1">
@@ -106,7 +106,7 @@ export default function Tickets() {
             placeholder="Поиск..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            className="w-full pl-10 pr-3 py-2 text-sm text-gray-900 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent placeholder-gray-400"
           />
         </div>
 
@@ -114,7 +114,7 @@ export default function Tickets() {
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="text-sm bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="text-sm text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
           <option value="">Все статусы</option>
           {meta.statuses.map((s) => (
@@ -128,7 +128,7 @@ export default function Tickets() {
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value)}
-          className="text-sm bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="text-sm text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
           <option value="">Все приоритеты</option>
           {meta.priorities.map((p) => (
@@ -142,7 +142,7 @@ export default function Tickets() {
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="text-sm bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
+          className="text-sm text-gray-900 bg-white border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-900"
         >
           <option value="">Все категории</option>
           {meta.categories.map((c) => (
